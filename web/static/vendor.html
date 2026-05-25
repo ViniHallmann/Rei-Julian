@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <title>OH o Carro do Ovo - Vendedor</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        />
+        <link rel="stylesheet" href="css/style.css">
+    </head>
+    <body class="page-vendor">
+        <div id="map"></div>
+
+        <div class="panel">
+            <div class="panel-title">Vendedor <span class="badge" id="vendor-badge">Online</span></div>
+            <div class="panel-row" id="vendor-status">Conectando ao servidor...</div>
+            <div class="panel-row" id="vendor-position">Posicao: --</div>
+            <div class="panel-row" id="vendor-step">Passo: --</div>
+            <div class="panel-row" id="vendor-distance">Distancia ate cliente: --</div>
+            <div class="panel-actions">
+                <button id="pause-btn" class="btn btn-secondary">Pausar</button>
+                <button id="resume-btn" class="btn">Retomar</button>
+                <button id="reset-btn" class="btn btn-secondary">Reiniciar rota</button>
+            </div>
+            <div class="panel-title">Logs</div>
+            <div class="panel-row">
+                <label class="log-filter">
+                    Filtro:
+                    <select id="log-filter">
+                        <option value="all">Todos</option>
+                        <option value="info">Info</option>
+                        <option value="warn">Warn</option>
+                        <option value="error">Erro</option>
+                    </select>
+                </label>
+            </div>
+            <div class="panel-logs" id="vendor-logs"></div>
+        </div>
+
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script type="module" src="js/vendor.js"></script>
+    </body>
+</html>

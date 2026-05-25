@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <title>OH o Carro do Ovo - Cliente</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        />
+        <link rel="stylesheet" href="css/style.css">
+    </head>
+    <body class="page-client">
+        <div id="map"></div>
+
+        <div class="panel">
+            <div class="panel-title">Cliente</div>
+            <div class="panel-row" id="status">Clique no mapa para definir sua casa.</div>
+            <div class="panel-row" id="eta">ETA: --</div>
+            <button id="notify-btn" class="btn">Ativar notificacoes</button>
+            <div class="panel-row" id="notify-state">Notificacoes: desativadas</div>
+        </div>
+
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script type="module" src="js/client.js"></script>
+    </body>
+</html>

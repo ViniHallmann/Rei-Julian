@@ -12,38 +12,24 @@ const (
 )
 
 func main() {
-	devices := []struct {
-		id  string
-		lat float64
-		lon float64
-	}{
-		{"julian", startLat, startLon},
-		{"maurice", startLat + 0.001, startLon + 0.001},
-	}
+	tracker := NewTracker("vendedor", startLat, startLon)
+	go Simulate(tracker)
 
-	trackers := make(map[string]*Tracker)
-
-	// Instanciando e iniciando a simulação para cada rastreador
-	for _, dev := range devices {
-		t := NewTracker(dev.id, dev.lat, dev.lon)
-		trackers[dev.id] = t
-		go Simulate(t)
-
-		// Endpoints individuais por tracker
-		http.HandleFunc("/position/"+dev.id, positionHandler(t))
-		http.HandleFunc("/stream/"+dev.id, sseHandler(t))
-	}
+	// Endpoints
+	http.HandleFunc("/position", positionHandler(tracker))
+	http.HandleFunc("/stream", sseHandler(tracker))
+	http.HandleFunc("/control", controlHandler(tracker))
+	http.HandleFunc("/set-home", setHomeHandler(tracker))
 
 	// SERVIR FRONTEND
 	fs := http.FileServer(http.Dir("./web/static"))
 	http.Handle("/", fs)
 
 	log.Println("Servidor iniciado em http://localhost:8080")
-	for id := range trackers {
-		log.Printf("Dispositivo registrado: %s", id)
-		log.Printf("  -> GET /position/%s (JSON)", id)
-		log.Printf("  -> GET /stream/%s (SSE)", id)
-	}
+	log.Printf("  -> GET /position (JSON)")
+	log.Printf("  -> GET /stream (SSE)")
+	log.Printf("  -> POST /control (pause/resume)")
+	log.Printf("  -> POST /set-home (client)")
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
