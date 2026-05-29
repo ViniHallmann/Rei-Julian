@@ -24,6 +24,8 @@ type LogEntry struct {
 }
 
 type Tracker struct {
+        delay    bool
+        reloadReq bool
 	ID       string
 	mu       sync.RWMutex
 	position Position
@@ -57,15 +59,14 @@ func (t *Tracker) GetPosition() Position {
 	return t.position
 }
 
-func (t *Tracker) SetPosition(p Position) {
-	t.mu.Lock()
-	t.position = p
-
+func (t *Tracker) broadcast(p Position) {
 	clients := make([]chan Position, 0, len(t.clients))
+	
+	t.mu.RLock()
 	for ch := range t.clients {
 		clients = append(clients, ch)
 	}
-	t.mu.Unlock()
+	t.mu.RUnlock()
 
 	for _, ch := range clients {
 		select {
@@ -74,6 +75,14 @@ func (t *Tracker) SetPosition(p Position) {
 			// cliente lento, ignora este envio
 		}
 	}
+}
+
+func (t *Tracker) SetPosition(p Position) {
+	t.mu.Lock()
+	t.position = p
+	t.mu.Unlock()
+
+	t.broadcast(p)
 }
 
 func (t *Tracker) SetRoute(points []RoutePoint) {
@@ -124,39 +133,27 @@ func (t *Tracker) AdvanceRoutePoint() {
 
 func (t *Tracker) ResetRoute() {
 	t.mu.Lock()
-	defer t.mu.Unlock()
 	if len(t.route) == 0 {
+		t.mu.Unlock()
 		return
 	}
 
 	t.routeIdx = 0
-
 	first := t.route[0]
 	t.logs = t.logs[:0] // Limpa os historicos de log
 
-	// Atualiza com a posicao zero imediatamente e notifica
+	// Atualiza com a posicao zero
 	t.position = Position{
 		Latitude:  first.Latitude,
 		Longitude: first.Longitude,
 		Timestamp: time.Now(),
 		Step:      0,
 	}
+	newPos := t.position
+	t.mu.Unlock()
 
-	// Broadcaster inline igual ao SetPosition
-	clients := make([]chan Position, 0, len(t.clients))
-	for ch := range t.clients {
-		clients = append(clients, ch)
-	}
-
-	// Nao mantemos o lock durante os envios no canal
-	go func(pos Position) {
-		for _, ch := range clients {
-			select {
-			case ch <- pos:
-			default:
-			}
-		}
-	}(t.position)
+	// Notifica os clientes fora do lock usando uma goroutine
+	go t.broadcast(newPos)
 }
 
 func (t *Tracker) SetPaused(paused bool) {
@@ -218,4 +215,33 @@ func (t *Tracker) Unsubscribe(ch chan Position) {
 	delete(t.clients, ch)
 	t.mu.Unlock()
 	close(ch)
+}
+
+func (t *Tracker) SetDelay(d bool) {
+        t.mu.Lock()
+        t.delay = d
+        t.mu.Unlock()
+        t.broadcast(t.GetPosition())
+}
+
+func (t *Tracker) HasDelay() bool {
+        t.mu.RLock()
+        defer t.mu.RUnlock()
+        return t.delay
+}
+
+func (t *Tracker) RequestRouteReload() {
+        t.mu.Lock()
+        t.reloadReq = true
+        t.mu.Unlock()
+}
+
+func (t *Tracker) ConsumeRouteReload() bool {
+        t.mu.Lock()
+        defer t.mu.Unlock()
+        if t.reloadReq {
+                t.reloadReq = false
+                return true
+        }
+        return false
 }

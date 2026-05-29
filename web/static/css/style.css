@@ -12,6 +12,69 @@ html, body {
     height: 100%;
 }
 
+/* ====== Estilos da Tela Inicial (index.html) ====== */
+.page-home {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: #111111;
+    margin: 0;
+}
+
+.home-card {
+    background: #1a1a1a;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid #2a2a2a;
+    box-sizing: border-box;
+}
+
+.home-card h1 {
+    font-size: 26px;
+    margin: 0 0 8px 0;
+    color: #ffffff;
+    font-weight: 800;
+}
+
+.home-card p {
+    color: #aaa;
+    font-size: 14px;
+    margin: 0 0 32px 0;
+}
+
+.group-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #555;
+    margin: 24px 0 10px 0;
+    text-align: left;
+    font-weight: 700;
+}
+
+.select-custom {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #333333;
+    background: #222222;
+    color: #ffffff;
+    font-size: 14px;
+    margin-bottom: 16px;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+
+.select-custom:focus {
+    border-color: #00b0ff;
+}
+
 .page-client #map {
     height: 100vh;
 }
@@ -354,4 +417,181 @@ html, body {
     border: 1px solid #444444;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     z-index: 3;
+}
+
+/* ====== 1. Layout e Paleta Minimalista ====== */
+.page-vendor .sidebar {
+    background: #121212;
+    border-right: 1px solid #2a2a2a;
+}
+.sidebar-header, .sidebar-footer {
+    border-color: #2a2a2a;
+    background: #121212;
+}
+.client-card {
+    background: #1e1e1e;
+    border: none;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+.client-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.client-avatar {
+    width: 40px;
+    height: 40px;
+    background: #333;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #fff;
+}
+.client-info {
+    display: flex;
+    flex-direction: column;
+}
+.client-name { font-weight: bold; }
+.client-distance, .client-eta {
+    font-size: 12px;
+    color: #aaa;
+}
+
+/* Ações dos cards */
+.client-actions {
+    display: flex;
+    gap: 8px;
+}
+.client-actions .btn-visited {
+    flex-grow: 1;
+    padding: 8px;
+    background: #333;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.client-card.visited .btn-visited {
+    background: #1e1e1e;
+    color: #555;
+    border: 1px solid #333;
+}
+.btn-icon {
+    background: #333;
+    border: none;
+    border-radius: 6px;
+    padding: 8px;
+    cursor: pointer;
+    color: #fff;
+}
+
+/* Top placeholder para Estoque & Switch Global (para .sidebar-header ou acima do painel) */
+.inventory-placeholder {
+    font-size: 13px;
+    background: #1e1e1e;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    color: #ccc;
+    text-align: center;
+    border: 1px dashed #333;
+}
+
+/* Global status toggle (placeholder) */
+.global-status-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-top: 12px;
+    color: #ccc;
+}
+
+/* ====== 2. Marcadores Customizados ====== */
+/* Pulsar Vendedor */
+.vendor-marker .marker-dot {
+    border-color: #00ff9d;
+    background: #1a1a1a;
+}
+.vendor-marker .pulse {
+    animation: radar-pulse 2s infinite;
+}
+
+@keyframes radar-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.7); }
+    70% { box-shadow: 0 0 0 20px rgba(0, 255, 157, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 255, 157, 0); }
+}
+
+/* Clientes */
+.client-marker .marker-dot {
+    border-color: #ffffff;
+    background: #fff;
+    box-shadow: none;
+}
+.visited-marker .marker-dot {
+    border-color: #555;
+    background: transparent;
+    box-shadow: none;
+    opacity: 0.5;
+}
+.visited-marker .marker-label {
+    opacity: 0.5;
+    color: #888;
+}
+
+/* Fixando icones verticais */
+.btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Remove a borda grossa temporariamente para tirar formato de Eclipse ruim */
+.custom-map-marker .marker-dot {
+    border-width: 2px !important;
+    width: 14px !important;
+    height: 14px !important;
+}
+
+/* Icon pin styles */
+.custom-map-marker .marker-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+.vendor-marker .marker-icon { color: #00ff9d; }
+.home-marker .marker-icon { color: #00b0ff; }
+.client-marker .marker-icon { color: #fff; }
+.visited-marker .marker-icon { color: #444; }
+
+.custom-map-marker .marker-label {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    pointer-events: none;
+    background: rgba(18, 18, 18, 0.9);
+    border: 1px solid #333;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 5px;
+    font-size: 11px;
+    color: #fff;
+}
+
+.custom-map-marker:hover .marker-label {
+    opacity: 1;
+    visibility: visible;
 }

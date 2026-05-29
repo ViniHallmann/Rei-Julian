@@ -4,22 +4,41 @@
         <meta charset="UTF-8">
         <title>OH o Carro do Ovo - Cliente</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link
-            rel="stylesheet"
-            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <link rel="stylesheet" href="/css/style.css">
     </head>
     <body class="page-client">
-        <div id="map"></div>
-
         <div class="panel">
-            <div class="panel-title">Cliente: <span id="client-name">--</span></div>
-            <div class="panel-row" id="status">Buscando status...</div>
-            <div class="panel-row" id="eta">Chega em -- min</div>
-            <button id="notify-btn" class="btn">Ativar notificacoes</button>
-            <div class="panel-row" id="notify-state" style="font-size:12px; margin-top: 8px;">Notificacoes: desativadas</div>
+            <div class="panel-header">
+                <div class="panel-title">
+                    <span id="client-name">--</span>
+                    <span class="badge" id="client-badge" style="background:#00b0ff;">Cliente</span>
+                </div>
+            </div>
+
+            <div class="panel-content" style="padding: 16px;">
+                <div class="client-card" style="cursor: default; padding: 20px;">
+                    <div class="client-card-header" style="justify-content: center; text-align: center; flex-direction: column; flex: 1;">
+                        <h3 style="margin: 0 0 10px 0; color: white;">Status do Vendedor</h3>
+                        <div id="status" style="color: #00ff9d; font-size: 16px; margin-bottom: 8px;">Aguardando...</div>
+                        <div id="eta" style="color: #ccc; font-size: 14px;">Chega em -- min</div>
+                        
+                        <!-- Added Warning element for delay -->
+                        <div id="delay-warning" style="display: none; margin-top: 15px; padding: 10px; background: rgba(255, 60, 60, 0.1); border: 1px solid #ff3c3c; border-radius: 4px; color: #ff3c3c; font-size: 13px;">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="vertical-align: middle; margin-right: 5px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                            O vendedor informou que vai atrasar um pouco!
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px; text-align: center;">
+                    <button id="notify-btn" class="btn" style="width: 100%;">Ativar Notificações</button>
+                    <div id="notify-state" style="font-size:12px; margin-top: 8px; color: #666;">Notificações: desativadas</div>
+                </div>
+            </div>
         </div>
+
+        <div id="map"></div>
 
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script type="module" src="/js/client.js"></script>
