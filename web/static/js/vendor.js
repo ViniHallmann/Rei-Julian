@@ -71,8 +71,6 @@ document.getElementById('route-select').addEventListener('change', (e) => {
     });
 });
 
-// Hook into UI Manager's client actions (like Delay!)
-// Since UI manager creates buttons dynamically, we delegate
 document.getElementById('vendor-clients-list').addEventListener('click', (e) => {
     const delayBtn = e.target.closest('.btn-emergency-delay');
     if (delayBtn) {
@@ -91,4 +89,13 @@ document.getElementById('vendor-clients-list').addEventListener('click', (e) => 
             delayBtn.style.color = '';
         }
     }
+});
+
+document.addEventListener('vendor-action', (e) => {
+    const payload = e.detail;
+    fetch('/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }).catch(err => console.error('Erro na ação:', err));
 });

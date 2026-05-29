@@ -12,28 +12,29 @@
             <div class="panel-header">
                 <div class="panel-title">
                     <span id="client-name">--</span>
-                    <span class="badge" id="client-badge" style="background:#00b0ff;">Cliente</span>
                 </div>
             </div>
 
             <div class="panel-content" style="padding: 16px;">
                 <div class="client-card" style="cursor: default; padding: 20px;">
-                    <div class="client-card-header" style="justify-content: center; text-align: center; flex-direction: column; flex: 1;">
-                        <h3 style="margin: 0 0 10px 0; color: white;">Status do Vendedor</h3>
-                        <div id="status" style="color: #00ff9d; font-size: 16px; margin-bottom: 8px;">Aguardando...</div>
-                        <div id="eta" style="color: #ccc; font-size: 14px;">Chega em -- min</div>
+                    <div class="client-card-header status-header">
+                        <h3 class="status-title">Status do Vendedor</h3>
+                        <div id="status" class="status-indicator">Aguardando...</div>
+                        <div id="eta" class="status-eta">Chega em -- min</div>
                         
-                        <!-- Added Warning element for delay -->
-                        <div id="delay-warning" style="display: none; margin-top: 15px; padding: 10px; background: rgba(255, 60, 60, 0.1); border: 1px solid #ff3c3c; border-radius: 4px; color: #ff3c3c; font-size: 13px;">
-                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="vertical-align: middle; margin-right: 5px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        <div id="delay-warning" class="delay-warning" style="display: none;">
+                            <svg class="icon-warning" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                             O vendedor informou que vai atrasar um pouco!
                         </div>
                     </div>
                 </div>
 
-                <div style="margin-top: 20px; text-align: center;">
-                    <button id="notify-btn" class="btn" style="width: 100%;">Ativar Notificações</button>
-                    <div id="notify-state" style="font-size:12px; margin-top: 8px; color: #666;">Notificações: desativadas</div>
+                <div class="notify-container">
+                    <button id="notify-btn" class="btn btn-notify">
+                        <svg class="icon-notify" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                        Ativar Notificações
+                    </button>
+                    <div id="notify-state" class="notify-state-text">Notificações: desativadas</div>
                 </div>
             </div>
         </div>

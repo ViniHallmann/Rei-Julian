@@ -20,6 +20,7 @@ function setupSSE() {
         mapManager.updateVendorMarker(data.latitude, data.longitude);
         mapManager.updateRouteLine(data.route);
         uiManager.updateClientStatus(myState);
+        uiManager.handleDelay(data.delay);
     };
 
     source.onerror = (err) => console.error('Erro SSE:', err);

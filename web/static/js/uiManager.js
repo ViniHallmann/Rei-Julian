@@ -58,12 +58,29 @@ export class UIManager {
                 document.dispatchEvent(new CustomEvent('client-visited', { detail: { id: clientId, visited: this.visitedClients.has(clientId) } }));
             }
             
-            // Placholders for new actions
             if (e.target.closest('.btn-emergency-skip')) {
-                alert('Ação: Pular Cliente');
+                const btn = e.target.closest('.btn-emergency-skip');
+                const clientId = btn.closest('.client-card').dataset.id;
+                
+                // UI Manager apenas emite o evento
+                document.dispatchEvent(new CustomEvent('vendor-action', { 
+                    detail: { action: 'skip', targetId: clientId } 
+                }));
+                
+                btn.style.color = '#ff3c3c'; // Feedback visual UI
+                this.addLog(`Pulando cliente ${clientId}...`, 'warn');
             }
+
             if (e.target.closest('.btn-emergency-delay')) {
-                alert('Ação: Avisar Atraso');
+                // Mesma lógica caso queira encapsular o atraso também
+                const btn = e.target.closest('.btn-emergency-delay');
+                const isDelayed = btn.classList.toggle('delayed-active');
+                
+                document.dispatchEvent(new CustomEvent('vendor-action', { 
+                    detail: { action: isDelayed ? 'delay' : 'clear_delay' } 
+                }));
+                
+                btn.style.color = isDelayed ? '#ff3c3c' : '';
             }
         });
     }
@@ -103,7 +120,9 @@ export class UIManager {
             return;
         }
 
-        const cardsHtml = clients.map(c => {
+        const validClients = clients.filter(c => !c.name.toLowerCase().includes('base'));
+
+        const cardsHtml = validClients.map(c => {
             const min = Math.round(c.eta_seconds / 60);
             const distance = Math.round(c.distance_to_home_meters);
             const isVisited = this.visitedClients.has(c.id);

@@ -40,6 +40,11 @@ export class ClientUIManager {
 
         if (this.ui.notifyBtn) {
             this.ui.notifyBtn.addEventListener('click', async () => {
+                if (this.notificationsEnabled) {
+                    this.notificationsEnabled = false;
+                    updateState();
+                    return;
+                }
                 if (!('Notification' in window)) {
                     alert('Este navegador nao suporta notificacoes.');
                     return;
@@ -54,7 +59,7 @@ export class ClientUIManager {
     }
 
     updateClientStatus(myState, isDelayed) {
-        const distance = myState.distance_to_home_meters;
+        const distance = Math.round(myState.distance_to_home_meters);
         const minutes = Math.round(myState.eta_seconds / 60);
         
         if (this.ui.eta) {
@@ -68,7 +73,7 @@ export class ClientUIManager {
                 this.proximityTriggered = true;
             }
         } else {
-            this.ui.status.textContent = 'Aguardando o vendedor se aproximar.';
+            this.ui.status.textContent = `Vendedor a ${distance} metros`; // Feedback visual aprimorado
             this.proximityTriggered = false;
         }
     }

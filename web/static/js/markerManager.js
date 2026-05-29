@@ -61,11 +61,38 @@ export class MarkerManager {
         });
     }
 
-    updateClientMarkerState(id, isVisited) {
-        if (this.clientMarkers[id]) {
-            this.clientMarkers[id].isVisited = isVisited;
-            this.clientMarkers[id].marker.setIcon(this.createClientIcon(this.clientMarkers[id].name, isVisited));
-        }
+    updateClientMarkers(clients, visitedSet = new Set()) {
+        if (!Array.isArray(clients)) return;
+        
+        // 1. Mapeia os IDs dos clientes que chegaram na requisição atual
+        const currentClientIds = new Set(clients.map(c => c.id));
+
+        // 2. Remove do mapa (e do objeto clientMarkers) os clientes antigos
+        Object.keys(this.clientMarkers).forEach(id => {
+            if (!currentClientIds.has(id)) {
+                this.map.removeLayer(this.clientMarkers[id].marker); // Remove visualmente do mapa Leaflet
+                delete this.clientMarkers[id];                       // Remove do controle interno
+            }
+        });
+
+        // 3. Adiciona ou atualiza os clientes da rota atual
+        clients.forEach(c => {
+            const isVisited = visitedSet.has(c.id);
+            
+            if (!this.clientMarkers[c.id]) {
+                const marker = L.marker([c.latitude, c.longitude], { 
+                    icon: this.createClientIcon(c.name, isVisited) 
+                }).addTo(this.map);
+                this.clientMarkers[c.id] = { marker, name: c.name, isVisited };
+            } else {
+                this.clientMarkers[c.id].marker.setLatLng([c.latitude, c.longitude]);
+                
+                // Opcional, mas recomendado: garante que o ícone se atualiza se houver troca forçada de rota
+                if (this.clientMarkers[c.id].isVisited !== isVisited) {
+                    this.updateClientMarkerState(c.id, isVisited);
+                }
+            }
+        });
     }
 
     updateRouteLine(routeData) {

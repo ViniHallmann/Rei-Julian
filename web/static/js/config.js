@@ -11,12 +11,12 @@ export const NOTIFICATION_MSG = `O vendedor esta a menos de ${PROXIMITY_METERS}m
 
 
 export const CLIENTS = [
-    { id: "cliente-1", name: "Maria", lat: -31.7674, lon: -52.3361, rota: "rota-pelotas-centro" },
-    { id: "cliente-2", name: "João", lat: -31.7628, lon: -52.3411, rota: "rota-pelotas-centro" },
-    { id: "cliente-3", name: "Ana", lat: -31.7601, lon: -52.3385, rota: "rota-pelotas-centro" },
-    { id: "cliente-4", name: "Carlos", lat: -31.7654, lon: -52.3376, rota: "rota-pelotas-zona-norte" },
-    { id: "cliente-5", name: "Fernanda", lat: -31.7456, lon: -52.3255, rota: "rota-pelotas-zona-norte" },
-    { id: "cliente-6", name: "Pedro", lat: -31.7654, lon: -52.3376, rota: "rota-pelotas-zona-sul" },
-    { id: "cliente-7", name: "Lucas", lat: -31.762000, lon: -52.315000, rota: "rota-pelotas-zona-sul" },
-    { id: "cliente-10", name: "Base", lat: -31.7654, lon: -52.3376, rota: "rota-pelotas-zona-sul" },
+    { id: "cliente-maria", name: "Maria", lat: -31.7674, lon: -52.3361, rota: "rota-pelotas-centro" },
+    { id: "cliente-joao", name: "João", lat: -31.7628, lon: -52.3411, rota: "rota-pelotas-centro" },
+    { id: "cliente-ana", name: "Ana", lat: -31.7601, lon: -52.3385, rota: "rota-pelotas-centro" },
+    { id: "cliente-carlos", name: "Carlos", lat: -31.7654, lon: -52.3376, rota: "rota-pelotas-zona-norte" },
+    { id: "cliente-fernanda", name: "Fernanda", lat: -31.7456, lon: -52.3255, rota: "rota-pelotas-zona-norte" },
+    { id: "cliente-pedro", name: "Pedro", lat: -31.7654, lon: -52.3376, rota: "rota-pelotas-zona-sul" },
+    { id: "cliente-lucas", name: "Lucas", lat: -31.762000, lon: -52.315000, rota: "rota-pelotas-zona-sul" },
+    { id: "cliente-10", name: "Base", lat: -31.7654, lon: -52.3376, rota: "base" },
 ];

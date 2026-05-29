@@ -75,6 +75,20 @@ html, body {
     border-color: #00b0ff;
 }
 
+/* Classes extras para o Client UI */
+.status-header { justify-content: center; text-align: center; flex-direction: column; flex: 1; }
+.status-title { margin: 0 0 10px 0; color: white; }
+.status-indicator { color: #00ff9d; font-size: 16px; margin-bottom: 8px; font-weight: bold; }
+.status-eta { color: #ccc; font-size: 14px; }
+
+.delay-warning { margin-top: 15px; padding: 10px; background: rgba(255, 60, 60, 0.1); border: 1px solid #ff3c3c; border-radius: 4px; color: #ff3c3c; font-size: 13px; }
+.icon-warning { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; vertical-align: middle; margin-right: 5px; }
+
+.notify-container { margin-top: 20px; text-align: center; }
+.btn-notify { display: flex; align-items: center; justify-content: center; width: 100%; }
+.icon-notify { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; margin-right: 8px; }
+.notify-state-text { font-size: 12px; margin-top: 8px; color: #666; }
+
 .page-client #map {
     height: 100vh;
 }

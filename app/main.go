@@ -33,7 +33,6 @@ func main() {
 	log.Printf("  -> GET /stream (SSE)")
 	log.Printf("  -> POST /control (pause/resume)")
 	log.Printf("  -> POST /set-home (client)")
-	log.Printf("  -> GET /client/:id (ex: /client/cliente-1)")
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
