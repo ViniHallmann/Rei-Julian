@@ -1,9 +1,6 @@
-const startLat = -31.770687426923516;
-const startLon = -52.34135057529372;
-const proximityMeters = 500;
-const averageSpeedKmh = 20;
+import { START_LAT, START_LON, PROXIMITY_METERS, CLIENTS } from './config.js';
 
-const map = L.map('map').setView([startLat, startLon], 16);
+const map = L.map('map').setView([START_LAT, START_LON], 16);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
 let vendorMarker = null;
@@ -17,6 +14,22 @@ const statusEl = document.getElementById('status');
 const etaEl = document.getElementById('eta');
 const notifyBtn = document.getElementById('notify-btn');
 const notifyState = document.getElementById('notify-state');
+const clientNameEl = document.getElementById('client-name');
+
+const clientId = window.location.pathname.split('/').pop();
+const clientConfig = CLIENTS.find(c => c.id === clientId);
+
+if (!clientConfig) {
+    statusEl.textContent = 'Cliente nao encontrado!';
+    etaEl.textContent = '';
+} else {
+    // Definimos o nome se o elemento existir
+    if (clientNameEl) clientNameEl.textContent = clientConfig.name;
+    
+    // Draw the client's home
+    homeMarker = L.marker([clientConfig.lat, clientConfig.lon]).addTo(map).bindPopup('Casa de ' + clientConfig.name);
+    homeCircle = L.circle([clientConfig.lat, clientConfig.lon], { radius: PROXIMITY_METERS }).addTo(map);
+}
 
 function updateNotificationState() {
     notifyState.textContent = notificationsEnabled ? 'Notificacoes: ativadas' : 'Notificacoes: desativadas';
@@ -33,82 +46,14 @@ notifyBtn.addEventListener('click', async () => {
     updateNotificationState();
 });
 
-map.on('click', (event) => {
-    const { lat, lng } = event.latlng;
-
-    if (!homeMarker) {
-        homeMarker = L.marker([lat, lng]).addTo(map).bindPopup('Casa');
-    } else {
-        homeMarker.setLatLng([lat, lng]);
-    }
-
-    if (!homeCircle) {
-        homeCircle = L.circle([lat, lng], { radius: proximityMeters }).addTo(map);
-    } else {
-        homeCircle.setLatLng([lat, lng]);
-    }
-
-    statusEl.textContent = 'Casa definida. Aguardando vendedor...';
-    proximityTriggered = false;
-
-    fetch('/set-home', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ latitude: lat, longitude: lng })
-    }).catch((err) => {
-        console.error('Erro ao enviar casa:', err);
-    });
-});
-
-function haversineMeters(lat1, lon1, lat2, lon2) {
-    const toRad = (value) => (value * Math.PI) / 180;
-    const r = 6371000;
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-    const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return r * c;
-}
-
-function etaSeconds(distanceMeters) {
-    const speedMs = (averageSpeedKmh * 1000) / 3600;
-    return Math.max(0, Math.round(distanceMeters / speedMs));
-}
-
-function updateEta(vendorLat, vendorLon, serverEtaSeconds) {
-    if (!homeMarker) {
-        etaEl.textContent = 'ETA: --';
-        return;
-    }
-
-    const home = homeMarker.getLatLng();
-    const distance = haversineMeters(vendorLat, vendorLon, home.lat, home.lng);
-    const seconds = Number.isFinite(serverEtaSeconds) && serverEtaSeconds > 0
-        ? serverEtaSeconds
-        : etaSeconds(distance);
-    const minutes = Math.round(seconds / 60);
-    etaEl.textContent = `ETA: ${minutes} min`;
-
-    if (distance <= proximityMeters) {
-        statusEl.textContent = 'O vendedor esta perto!';
-        if (notificationsEnabled && !proximityTriggered) {
-            new Notification('Carro do Ovo', {
-                body: 'O vendedor esta a menos de 500m da sua casa.'
-            });
-            proximityTriggered = true;
-        }
-    } else {
-        statusEl.textContent = 'Aguardando o vendedor se aproximar.';
-        proximityTriggered = false;
-    }
-}
-
 const source = new EventSource('/stream');
 source.onmessage = (event) => {
     const data = JSON.parse(event.data);
+    
+    if (!clientConfig) return;
+
+    const myState = data.clients?.find(c => c.id === clientId);
+    if (!myState) return;
 
     if (!vendorMarker) {
         vendorMarker = L.marker([data.latitude, data.longitude]).addTo(map);
@@ -125,7 +70,22 @@ source.onmessage = (event) => {
         }
     }
 
-    updateEta(data.latitude, data.longitude, data.eta_seconds);
+    const distance = myState.distance_to_home_meters;
+    const minutes = Math.round(myState.eta_seconds / 60);
+    etaEl.textContent = `ETA: ${minutes} min`;
+
+    if (distance <= PROXIMITY_METERS) {
+        statusEl.textContent = 'O vendedor esta perto!';
+        if (notificationsEnabled && !proximityTriggered) {
+            new Notification('Carro do Ovo', {
+                body: 'O vendedor esta a menos de 500m da sua casa.'
+            });
+            proximityTriggered = true;
+        }
+    } else {
+        statusEl.textContent = 'Aguardando o vendedor se aproximar.';
+        proximityTriggered = false;
+    }
 };
 
 source.onerror = (err) => {

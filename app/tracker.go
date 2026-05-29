@@ -30,7 +30,6 @@ type Tracker struct {
 	route    []RoutePoint
 	routeIdx int
 	paused   bool
-	home     *RoutePoint
 	logs     []LogEntry
 	clients  map[chan Position]struct{}
 }
@@ -47,7 +46,6 @@ func NewTracker(id string, startLat, startLon float64) *Tracker {
 		route:    nil,
 		routeIdx: 0,
 		paused:   false,
-		home:     nil,
 		logs:     make([]LogEntry, 0, 64),
 		clients:  make(map[chan Position]struct{}),
 	}
@@ -146,26 +144,11 @@ func (t *Tracker) IsPaused() bool {
 	return t.paused
 }
 
-func (t *Tracker) SetHome(point RoutePoint) {
-	t.mu.Lock()
-	t.home = &RoutePoint{Latitude: point.Latitude, Longitude: point.Longitude}
-	t.mu.Unlock()
-}
-
-func (t *Tracker) GetHome() (RoutePoint, bool) {
-	t.mu.RLock()
-	defer t.mu.RUnlock()
-	if t.home == nil {
-		return RoutePoint{}, false
-	}
-	return *t.home, true
-}
-
 func (t *Tracker) AddLog(level, message string) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	if len(t.logs) >= 50 {
+	if len(t.logs) >= MaxLogs {
 		copy(t.logs, t.logs[1:])
 		t.logs = t.logs[:len(t.logs)-1]
 	}

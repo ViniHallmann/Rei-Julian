@@ -2,7 +2,7 @@ html, body {
     margin: 0;
     padding: 0;
     height: 100%;
-    font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande", "Lucida Sans", Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background: #f3f3f3;
 }
 
@@ -21,31 +21,33 @@ html, body {
 
 .panel {
     position: absolute;
-    top: 16px;
-    left: 16px;
+    top: 24px;
+    left: 24px;
     z-index: 1000;
     background: #ffffff;
-    padding: 12px 14px;
-    border-radius: 10px;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15);
-    min-width: 220px;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    min-width: 250px;
 }
 
 .panel-title {
     font-weight: 700;
-    font-size: 16px;
-    margin-bottom: 8px;
+    font-size: 18px;
+    margin-bottom: 12px;
+    color: #1a1a1a;
 }
 
 .badge {
     display: inline-block;
     margin-left: 8px;
-    padding: 2px 8px;
+    padding: 4px 10px;
     border-radius: 999px;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     background: #e0f2f1;
     color: #0b6b62;
+    transition: all 0.3s;
 }
 
 .badge-paused {
@@ -61,35 +63,45 @@ html, body {
 .panel-row {
     font-size: 14px;
     color: #333333;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
+    line-height: 1.5;
 }
 
 .log-filter {
     display: flex;
     align-items: center;
     gap: 8px;
+    font-size: 14px;
 }
 
 .log-filter select {
-    padding: 4px 8px;
-    border-radius: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
     border: 1px solid #d0d0d0;
     background: #ffffff;
+    font-family: inherit;
 }
 
 .btn {
     width: 100%;
-    padding: 8px 12px;
+    padding: 10px 16px;
     border: none;
     border-radius: 8px;
     background: #f15a24;
     color: #ffffff;
     font-weight: 600;
+    font-size: 14px;
     cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    margin-bottom: 8px;
 }
 
 .btn:hover {
     background: #d94e1f;
+}
+
+.btn:active {
+    transform: scale(0.98);
 }
 
 .btn.btn-secondary {
@@ -101,41 +113,39 @@ html, body {
 }
 
 .panel-actions {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 16px;
 }
 
 .panel-logs {
-    max-height: 140px;
+    max-height: 160px;
     overflow: auto;
-    background: #f5f5f5;
+    background: #f8f9fa;
     border-radius: 8px;
-    padding: 8px;
-    font-size: 12px;
+    padding: 10px;
+    font-size: 13px;
     color: #444444;
-    line-height: 1.4;
+    line-height: 1.5;
+    border: 1px solid #e0e0e0;
 }
 
 .log-entry {
-    padding: 2px 0;
+    padding: 4px 0;
+    border-bottom: 1px solid #eeeeee;
+}
+.log-entry:last-child {
+    border-bottom: none;
 }
 
 .log-time {
     color: #7a7a7a;
-    margin-right: 6px;
+    margin-right: 8px;
     font-variant-numeric: tabular-nums;
+    font-size: 12px;
 }
 
-.log-info {
-    color: #37474f;
-}
-
-.log-warn {
-    color: #ef6c00;
-}
-
-.log-error {
-    color: #c62828;
-}
+.log-info { color: #37474f; }
+.log-warn { color: #ef6c00; }
+.log-error { color: #c62828; }

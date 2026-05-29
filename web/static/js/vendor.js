@@ -1,7 +1,6 @@
-const startLat = -31.770687426923516;
-const startLon = -52.34135057529372;
+import { START_LAT, START_LON } from './config.js';
 
-const map = L.map('map').setView([startLat, startLon], 16);
+const map = L.map('map').setView([START_LAT, START_LON], 16);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
 let vendorMarker = null;
@@ -11,7 +10,7 @@ const logs = [];
 const statusEl = document.getElementById('vendor-status');
 const positionEl = document.getElementById('vendor-position');
 const stepEl = document.getElementById('vendor-step');
-const distanceEl = document.getElementById('vendor-distance');
+const clientsListEl = document.getElementById('vendor-clients-list');
 const logsEl = document.getElementById('vendor-logs');
 const pauseBtn = document.getElementById('pause-btn');
 const resumeBtn = document.getElementById('resume-btn');
@@ -91,15 +90,18 @@ source.onmessage = (event) => {
     badgeEl.classList.toggle('badge-paused', !!data.paused);
     positionEl.textContent = `Posicao: ${data.latitude.toFixed(6)}, ${data.longitude.toFixed(6)}`;
     stepEl.textContent = `Passo: ${data.step}`;
-    if (Number.isFinite(data.distance_to_home_meters) && data.distance_to_home_meters > 0) {
-        const meters = Math.round(data.distance_to_home_meters);
-        distanceEl.textContent = `Distancia ate cliente: ${meters} m`;
-    } else {
-        distanceEl.textContent = 'Distancia ate cliente: --';
-    }
-
+    
     if (data.paused) {
         statusEl.textContent = 'Pausado.';
+    }
+
+    if (Array.isArray(data.clients) && data.clients.length > 0) {
+        clientsListEl.innerHTML = data.clients.map(c => {
+            const min = Math.round(c.eta_seconds / 60);
+            return `<div><strong>${c.name}:</strong> ${Math.round(c.distance_to_home_meters)}m (ETA: ${min} min)</div>`;
+        }).join('');
+    } else {
+        clientsListEl.innerHTML = 'Nenhum cliente configurado.';
     }
 
     if (!vendorMarker) {
@@ -111,7 +113,7 @@ source.onmessage = (event) => {
     if (Array.isArray(data.route) && data.route.length > 1) {
         const latLngs = data.route.map((point) => [point.latitude, point.longitude]);
         if (!routeLine) {
-            routeLine = L.polyline(latLngs, { color: '#1e88e5' }).addTo(map);
+            routeLine = L.polyline(latLngs, { color: '#f15a24' }).addTo(map);
         } else {
             routeLine.setLatLngs(latLngs);
         }

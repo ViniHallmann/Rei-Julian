@@ -6,26 +6,26 @@ import (
 	"net/http"
 )
 
+type ClientState struct {
+	ID                   string  `json:"id"`
+	Name                 string  `json:"name"`
+	DistanceToHomeMeters float64 `json:"distance_to_home_meters"`
+	ETASeconds           int     `json:"eta_seconds"`
+}
+
 type EventData struct {
-	ID        string       `json:"id"`
-	Latitude  float64      `json:"latitude"`
-	Longitude float64      `json:"longitude"`
-	Route     []RoutePoint `json:"route"`
-	Step      int          `json:"step"`
-	ETASeconds int         `json:"eta_seconds"`
-	Paused    bool         `json:"paused"`
-	Home      *RoutePoint  `json:"home,omitempty"`
-	DistanceToHomeMeters float64 `json:"distance_to_home_meters,omitempty"`
-	Logs      []LogEntry   `json:"logs,omitempty"`
+	ID        string        `json:"id"`
+	Latitude  float64       `json:"latitude"`
+	Longitude float64       `json:"longitude"`
+	Route     []RoutePoint  `json:"route"`
+	Step      int           `json:"step"`
+	Paused    bool          `json:"paused"`
+	Clients   []ClientState `json:"clients"`
+	Logs      []LogEntry    `json:"logs,omitempty"`
 }
 
 type ControlRequest struct {
 	Action string `json:"action"`
-}
-
-type SetHomeRequest struct {
-	Latitude  float64 `json:"latitude"`
-	Longitude float64 `json:"longitude"`
 }
 
 func positionHandler(tracker *Tracker) http.HandlerFunc {
@@ -35,32 +35,30 @@ func positionHandler(tracker *Tracker) http.HandlerFunc {
 
 		pos := tracker.GetPosition()
 		route := tracker.GetRoute()
-		etaSeconds := 0
-		next, ok := tracker.CurrentRoutePoint()
-		if ok {
-			distance := DistanceMeters(pos.Latitude, pos.Longitude, next.Latitude, next.Longitude)
-			etaSeconds = ETASeconds(distance, DefaultSpeedKmh)
-		}
 		paused := tracker.IsPaused()
-		var home *RoutePoint
-		var distanceHome float64
-		if point, ok := tracker.GetHome(); ok {
-			home = &RoutePoint{Latitude: point.Latitude, Longitude: point.Longitude}
-			distanceHome = DistanceMeters(pos.Latitude, pos.Longitude, point.Latitude, point.Longitude)
-		}
 		logs := tracker.GetLogs()
 
+		var clientsState []ClientState
+		for _, clientConfig := range FixedClients {
+			distance := DistanceMeters(pos.Latitude, pos.Longitude, clientConfig.Lat, clientConfig.Lon)
+			etaSec := ETASeconds(distance, DefaultSpeedKmh)
+			clientsState = append(clientsState, ClientState{
+				ID:                   clientConfig.ID,
+				Name:                 clientConfig.Name,
+				DistanceToHomeMeters: distance,
+				ETASeconds:           etaSec,
+			})
+		}
+
 		data := EventData{
-			ID:         tracker.ID,
-			Latitude:   pos.Latitude,
-			Longitude:  pos.Longitude,
-			Route:      route,
-			Step:       pos.Step,
-			ETASeconds: etaSeconds,
-			Paused:     paused,
-			Home:       home,
-			DistanceToHomeMeters: distanceHome,
-			Logs:       logs,
+			ID:        tracker.ID,
+			Latitude:  pos.Latitude,
+			Longitude: pos.Longitude,
+			Route:     route,
+			Step:      pos.Step,
+			Paused:    paused,
+			Clients:   clientsState,
+			Logs:      logs,
 		}
 
 		if err := json.NewEncoder(w).Encode(data); err != nil {
@@ -89,32 +87,30 @@ func sseHandler(tracker *Tracker) http.HandlerFunc {
 
 		sendSnapshot := func(pos Position) {
 			route := tracker.GetRoute()
-			etaSeconds := 0
-			next, ok := tracker.CurrentRoutePoint()
-			if ok {
-				distance := DistanceMeters(pos.Latitude, pos.Longitude, next.Latitude, next.Longitude)
-				etaSeconds = ETASeconds(distance, DefaultSpeedKmh)
-			}
 			paused := tracker.IsPaused()
-			var home *RoutePoint
-			var distanceHome float64
-			if point, ok := tracker.GetHome(); ok {
-				home = &RoutePoint{Latitude: point.Latitude, Longitude: point.Longitude}
-				distanceHome = DistanceMeters(pos.Latitude, pos.Longitude, point.Latitude, point.Longitude)
-			}
 			logs := tracker.GetLogs()
 
+			var clientsState []ClientState
+			for _, clientConfig := range FixedClients {
+				distance := DistanceMeters(pos.Latitude, pos.Longitude, clientConfig.Lat, clientConfig.Lon)
+				etaSec := ETASeconds(distance, DefaultSpeedKmh)
+				clientsState = append(clientsState, ClientState{
+					ID:                   clientConfig.ID,
+					Name:                 clientConfig.Name,
+					DistanceToHomeMeters: distance,
+					ETASeconds:           etaSec,
+				})
+			}
+
 			data := EventData{
-				ID:         tracker.ID,
-				Latitude:   pos.Latitude,
-				Longitude:  pos.Longitude,
-				Route:      route,
-				Step:       pos.Step,
-				ETASeconds: etaSeconds,
-				Paused:     paused,
-				Home:       home,
-				DistanceToHomeMeters: distanceHome,
-				Logs:       logs,
+				ID:        tracker.ID,
+				Latitude:  pos.Latitude,
+				Longitude: pos.Longitude,
+				Route:     route,
+				Step:      pos.Step,
+				Paused:    paused,
+				Clients:   clientsState,
+				Logs:      logs,
 			}
 			payload, err := json.Marshal(data)
 			if err != nil {
@@ -168,25 +164,6 @@ func controlHandler(tracker *Tracker) http.HandlerFunc {
 			return
 		}
 
-		w.WriteHeader(http.StatusNoContent)
-	}
-}
-
-func setHomeHandler(tracker *Tracker) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			http.Error(w, "metodo não permitido", http.StatusMethodNotAllowed)
-			return
-		}
-
-		var payload SetHomeRequest
-		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-			http.Error(w, "payload invalido", http.StatusBadRequest)
-			return
-		}
-
-		tracker.SetHome(RoutePoint{Latitude: payload.Latitude, Longitude: payload.Longitude})
-		tracker.AddLog("info", "Casa do cliente atualizada.")
 		w.WriteHeader(http.StatusNoContent)
 	}
 }

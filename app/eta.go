@@ -2,12 +2,6 @@ package main
 
 import "math"
 
-const (
-	// DefaultSpeedKmh define a velocidade media para o ETA.
-	DefaultSpeedKmh = 20.0
-)
-
-// DistanceMeters calcula a distancia em linha reta usando Haversine.
 func DistanceMeters(lat1, lon1, lat2, lon2 float64) float64 {
 	r1 := degreesToRadians(lat1)
 	r2 := degreesToRadians(lat2)
@@ -21,7 +15,7 @@ func DistanceMeters(lat1, lon1, lat2, lon2 float64) float64 {
 	return earthRadiusMeters * c
 }
 
-// ETASeconds calcula o ETA em segundos com base na distancia (m) e velocidade (km/h).
+// calcula o ETA em segundos com base na distancia (m) e velocidade (km/h).
 func ETASeconds(distanceMeters, speedKmh float64) int {
 	if speedKmh <= 0 {
 		return 0
