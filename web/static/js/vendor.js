@@ -1,54 +1,60 @@
-import { START_LAT, START_LON } from './config.js';
+import { 
+    START_LAT, START_LON, 
+    MAP_TILE_URL, MAP_MAX_ZOOM, VENDOR_INITIAL_ZOOM 
+} from './config.js';
 
-const map = L.map('map').setView([START_LAT, START_LON], 16);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-
-let vendorMarker = null;
-let routeLine = null;
+let map, vendorMarker, routeLine;
 const logs = [];
+const visitedClients = new Set();
+let isPaused = false;
 
-const statusEl = document.getElementById('vendor-status');
-const positionEl = document.getElementById('vendor-position');
-const stepEl = document.getElementById('vendor-step');
-const clientsListEl = document.getElementById('vendor-clients-list');
-const logsEl = document.getElementById('vendor-logs');
-const pauseBtn = document.getElementById('pause-btn');
-const resumeBtn = document.getElementById('resume-btn');
-const resetBtn = document.getElementById('reset-btn');
-const badgeEl = document.getElementById('vendor-badge');
-const logFilterEl = document.getElementById('log-filter');
+const ui = {
+    status: document.getElementById('vendor-status'),
+    position: document.getElementById('vendor-position'),
+    step: document.getElementById('vendor-step'),
+    clientsList: document.getElementById('vendor-clients-list'),
+    logs: document.getElementById('vendor-logs'),
+    togglePlayBtn: document.getElementById('toggle-play-btn'),
+    resetBtn: document.getElementById('reset-btn'),
+    badge: document.getElementById('vendor-badge'),
+    logFilter: document.getElementById('log-filter'),
+    accordion: document.getElementById('debug-accordion'),
+    debugPanel: document.getElementById('debug-panel')
+};
 
-function formatTime(isoTime) {
-    if (!isoTime) {
-        return '--:--:--';
-    }
-    const date = new Date(isoTime);
-    return date.toLocaleTimeString('pt-BR', { hour12: false });
+function initMap() {
+    map = L.map('map', { zoomControl: true }).setView([START_LAT, START_LON], VENDOR_INITIAL_ZOOM);
+    L.tileLayer(MAP_TILE_URL, { maxZoom: MAP_MAX_ZOOM }).addTo(map);
 }
 
-function renderLogs(entries) {
-    const filter = logFilterEl.value;
-    const filtered = entries.filter((entry) => filter === 'all' || entry.level === filter);
-    logsEl.innerHTML = filtered
-        .slice(-10)
-        .reverse()
-        .map((entry) => {
-            const time = formatTime(entry.timestamp);
-            return `<div class="log-entry log-${entry.level}"><span class="log-time">${time}</span> ${entry.message}</div>`;
-        })
+function createCustomIcon(label) {
+    return L.divIcon({
+        className: 'custom-map-marker',
+        html: `<div class="marker-dot"></div><div class="marker-label">${label}</div>`,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+    });
+}
+
+function formatTime(isoTime) {
+    if (!isoTime) return '--:--:--';
+    return new Date(isoTime).toLocaleTimeString('pt-BR', { hour12: false });
+}
+
+function renderLogs() {
+    const filter = ui.logFilter.value;
+    const filtered = logs.filter(entry => filter === 'all' || entry.level === filter);
+    
+    ui.logs.innerHTML = filtered
+        .slice(-10).reverse()
+        .map(entry => `<div class="log-entry log-${entry.level}"><span class="log-time">${formatTime(entry.timestamp)}</span> ${entry.message}</div>`)
         .join('');
 }
 
-function addLog(message) {
-    logs.unshift({
-        timestamp: new Date().toISOString(),
-        level: 'info',
-        message
-    });
-    if (logs.length > 6) {
-        logs.pop();
-    }
-    renderLogs(logs);
+function addClientLog(message) {
+    logs.unshift({ timestamp: new Date().toISOString(), level: 'info', message });
+    if (logs.length > 6) logs.pop();
+    renderLogs();
 }
 
 function sendControl(action) {
@@ -56,81 +62,157 @@ function sendControl(action) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action })
-    }).catch((err) => {
-        console.error('Erro ao enviar controle:', err);
+    }).catch(err => console.error('Erro ao enviar controle:', err));
+}
+
+function bindControls() {
+    ui.togglePlayBtn.addEventListener('click', () => {
+        if (isPaused) {
+            sendControl('resume');
+            addClientLog('Simulacao retomada.');
+        } else {
+            sendControl('pause');
+            addClientLog('Simulacao pausada.');
+        }
+        // Local Optimistic Update
+        isPaused = !isPaused;
+        ui.togglePlayBtn.textContent = isPaused ? 'Retomar' : 'Pausar';
+    });
+
+    ui.resetBtn.addEventListener('click', () => { 
+        sendControl('reset');
+        addClientLog('Rota reiniciada.'); 
+        visitedClients.clear(); // Limpa estado visitas
+    });
+    
+    ui.logFilter.addEventListener('change', renderLogs);
+
+    // Accordion Logic
+    ui.accordion.addEventListener('click', function() {
+        this.classList.toggle('active');
+        if (ui.debugPanel.style.maxHeight) {
+            ui.debugPanel.style.maxHeight = null;
+        } else {
+            ui.debugPanel.style.maxHeight = ui.debugPanel.scrollHeight + "px";
+        }
+    });
+
+    // Delegacao de eventos para os botões "Marcar Visitado"
+    ui.clientsList.addEventListener('click', (e) => {
+        if (e.target.classList.contains('btn-visited')) {
+            const clientId = e.target.dataset.id;
+            if (visitedClients.has(clientId)) {
+                visitedClients.delete(clientId);
+            } else {
+                visitedClients.add(clientId);
+            }
+            // Força um reflow simulado local pra mostrar instantaneamente
+            e.target.closest('.client-card').classList.toggle('visited', visitedClients.has(clientId));
+            e.target.textContent = visitedClients.has(clientId) ? 'Concluído' : 'Marcar Visitado';
+        }
     });
 }
 
-pauseBtn.addEventListener('click', () => {
-    sendControl('pause');
-    addLog('Simulacao pausada.');
-});
-
-resumeBtn.addEventListener('click', () => {
-    sendControl('resume');
-    addLog('Simulacao retomada.');
-});
-
-resetBtn.addEventListener('click', () => {
-    sendControl('reset');
-    addLog('Rota reiniciada.');
-});
-
-logFilterEl.addEventListener('change', () => {
-    renderLogs(logs);
-});
-
-const source = new EventSource('/stream');
-source.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-
-    statusEl.textContent = 'Online e transmitindo.';
-    badgeEl.textContent = data.paused ? 'Pausado' : 'Online';
-    badgeEl.classList.remove('badge-offline');
-    badgeEl.classList.toggle('badge-paused', !!data.paused);
-    positionEl.textContent = `Posicao: ${data.latitude.toFixed(6)}, ${data.longitude.toFixed(6)}`;
-    stepEl.textContent = `Passo: ${data.step}`;
-    
-    if (data.paused) {
-        statusEl.textContent = 'Pausado.';
-    }
-
-    if (Array.isArray(data.clients) && data.clients.length > 0) {
-        clientsListEl.innerHTML = data.clients.map(c => {
-            const min = Math.round(c.eta_seconds / 60);
-            return `<div><strong>${c.name}:</strong> ${Math.round(c.distance_to_home_meters)}m (ETA: ${min} min)</div>`;
-        }).join('');
-    } else {
-        clientsListEl.innerHTML = 'Nenhum cliente configurado.';
-    }
-
+function updateVendorMarker(lat, lon) {
     if (!vendorMarker) {
-        vendorMarker = L.marker([data.latitude, data.longitude]).addTo(map);
+        vendorMarker = L.marker([lat, lon], { icon: createCustomIcon('Vendedor') }).addTo(map);
     } else {
-        vendorMarker.setLatLng([data.latitude, data.longitude]);
+        vendorMarker.setLatLng([lat, lon]);
+    }
+}
+
+function updateRouteLine(routeData) {
+    if (!Array.isArray(routeData) || routeData.length <= 1) return;
+    const latLngs = routeData.map(p => [p.latitude, p.longitude]);
+    if (!routeLine) {
+        // Updated colors and thickness for neon route
+        routeLine = L.polyline(latLngs, { color: '#00ff9d', weight: 6, smoothFactor: 1 }).addTo(map);
+    } else {
+        routeLine.setLatLngs(latLngs);
+    }
+}
+
+function renderClientCards(clients) {
+    if (!Array.isArray(clients) || clients.length === 0) {
+        ui.clientsList.innerHTML = '<div style="color:#aaa;">Nenhum cliente configurado.</div>';
+        return;
     }
 
-    if (Array.isArray(data.route) && data.route.length > 1) {
-        const latLngs = data.route.map((point) => [point.latitude, point.longitude]);
-        if (!routeLine) {
-            routeLine = L.polyline(latLngs, { color: '#f15a24' }).addTo(map);
-        } else {
-            routeLine.setLatLngs(latLngs);
-        }
-    }
+    const cardsHtml = clients.map(c => {
+        const min = Math.round(c.eta_seconds / 60);
+        const distance = Math.round(c.distance_to_home_meters);
+        const isVisited = visitedClients.has(c.id);
+        const cardClass = isVisited ? 'client-card visited' : 'client-card';
+        const initial = c.name.charAt(0).toUpperCase();
+        const btnText = isVisited ? 'Concluído' : 'Marcar Visitado';
+
+        return `
+            <div class="${cardClass}" data-id="${c.id}">
+                <div class="client-card-header">
+                    <div class="client-avatar">${initial}</div>
+                    <div class="client-info">
+                        <span class="client-name">${c.name}</span>
+                        <span class="client-distance">${distance}m de distância</span>
+                        <span class="client-eta">Chega em ${min} min</span>
+                    </div>
+                </div>
+                <button class="btn-visited" data-id="${c.id}">${btnText}</button>
+            </div>
+        `;
+    }).join('');
+
+    // Update only if innerHTML changes, to prevent losing focus/flickering heavily.
+    // In a vanilla JS app, full string replace is simple. 
+    // To preserve states cleanly on SSE ticks, we can do a naive replace:
+    ui.clientsList.innerHTML = cardsHtml;
+}
+
+function updateUI(data) {
+    isPaused = data.paused;
+    ui.status.textContent = isPaused ? 'Pausado.' : 'Online e transmitindo.';
+    ui.badge.textContent = isPaused ? 'Pausado' : 'Online';
+    ui.badge.classList.remove('badge-offline');
+    ui.badge.classList.toggle('badge-paused', !!isPaused);
+    ui.togglePlayBtn.textContent = isPaused ? 'Retomar' : 'Pausar';
+    
+    ui.position.textContent = `Posicao: ${data.latitude.toFixed(6)}, ${data.longitude.toFixed(6)}`;
+    ui.step.textContent = `Passo: ${data.step}`;
+
+    renderClientCards(data.clients);
 
     if (Array.isArray(data.logs) && data.logs.length > 0) {
         logs.length = 0;
-        data.logs.forEach((entry) => logs.push(entry));
-        renderLogs(logs);
+        data.logs.forEach(entry => logs.push(entry));
+        renderLogs();
     } else {
-        addLog(`Step ${data.step} - ${data.latitude.toFixed(5)}, ${data.longitude.toFixed(5)}`);
+        addClientLog(`Step ${data.step} - ${data.latitude.toFixed(5)}, ${data.longitude.toFixed(5)}`);
     }
-};
 
-source.onerror = () => {
-    statusEl.textContent = 'Conexao perdida. Tentando reconectar...';
-    badgeEl.textContent = 'Offline';
-    badgeEl.classList.add('badge-offline');
-    addLog('Conexao SSE perdida.');
-};
+    // Keep accordion panel sized properly if opened
+    if (ui.accordion.classList.contains('active')) {
+        ui.debugPanel.style.maxHeight = ui.debugPanel.scrollHeight + "px";
+    }
+}
+
+function setupSSE() {
+    const source = new EventSource('/stream');
+    
+    source.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        updateUI(data);
+        updateVendorMarker(data.latitude, data.longitude);
+        updateRouteLine(data.route);
+    };
+
+    source.onerror = () => {
+        ui.status.textContent = 'Conexao perdida. Tentando reconectar...';
+        ui.badge.textContent = 'Offline';
+        ui.badge.classList.add('badge-offline');
+        addClientLog('Conexao SSE perdida.');
+    };
+}
+
+// Inicializacao Sequencial
+initMap();
+bindControls();
+setupSSE();

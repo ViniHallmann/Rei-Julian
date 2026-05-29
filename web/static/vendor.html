@@ -4,47 +4,55 @@
         <meta charset="UTF-8">
         <title>OH o Carro do Ovo - Vendedor</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link
-            rel="stylesheet"
-            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        />
-        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <link rel="stylesheet" href="/css/style.css">
     </head>
     <body class="page-vendor">
-        <div id="map"></div>
-
-        <div class="panel">
-            <div class="panel-title">Vendedor <span class="badge" id="vendor-badge">Online</span></div>
-            <div class="panel-row" id="vendor-status">Conectando ao servidor...</div>
-            <div class="panel-row" id="vendor-position">Posicao: --</div>
-            <div class="panel-row" id="vendor-step">Passo: --</div>
-            
-            <div class="panel-title" style="margin-top: 12px; font-size: 14px;">Clientes</div>
-            <div id="vendor-clients-list" style="margin-bottom: 12px; font-size: 13px;">
-                Carregando clientes...
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">
+                    Painel do Vendedor
+                    <span class="badge" id="vendor-badge">Online</span>
+                </div>
+                <!-- Dynamic Button Play/Pause & Reset -->
+                <div class="panel-actions">
+                    <button id="toggle-play-btn" class="btn">Pausar</button>
+                    <button id="reset-btn" class="btn btn-secondary">Reiniciar rota</button>
+                </div>
             </div>
 
-            <div class="panel-actions">
-                <button id="pause-btn" class="btn btn-secondary">Pausar</button>
-                <button id="resume-btn" class="btn">Retomar</button>
-                <button id="reset-btn" class="btn btn-secondary">Reiniciar rota</button>
+            <div class="sidebar-content" id="vendor-clients-list">
+                <!-- Reactively filled with modern cards -->
+                <div style="color: #ccc; font-size: 14px;">Carregando clientes...</div>
             </div>
-            <div class="panel-title">Logs</div>
-            <div class="panel-row">
-                <label class="log-filter">
-                    Filtro:
-                    <select id="log-filter">
-                        <option value="all">Todos</option>
-                        <option value="info">Info</option>
-                        <option value="warn">Warn</option>
-                        <option value="error">Erro</option>
-                    </select>
-                </label>
+
+            <div class="sidebar-footer">
+                <button class="accordion" id="debug-accordion">Debug Técnico</button>
+                <div class="accordion-panel" id="debug-panel">
+                    <div style="padding-top: 16px;">
+                        <div class="panel-row" id="vendor-status">Conectando ao servidor...</div>
+                        <div class="panel-row" id="vendor-position">Posicao: --</div>
+                        <div class="panel-row" id="vendor-step">Passo: --</div>
+                        <div class="panel-row" style="margin-top:16px;">
+                            <label class="log-filter">
+                                Filtro:
+                                <select id="log-filter">
+                                    <option value="all">Todos</option>
+                                    <option value="info">Info</option>
+                                    <option value="warn">Warn</option>
+                                    <option value="error">Erro</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="panel-logs" id="vendor-logs"></div>
+                    </div>
+                </div>
             </div>
-            <div class="panel-logs" id="vendor-logs"></div>
         </div>
 
+        <div id="map"></div>
+
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-        <script type="module" src="js/vendor.js"></script>
+        <script type="module" src="/js/vendor.js"></script>
     </body>
 </html>

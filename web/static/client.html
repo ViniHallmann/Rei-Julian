@@ -8,7 +8,7 @@
             rel="stylesheet"
             href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         />
-        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" href="/css/style.css">
     </head>
     <body class="page-client">
         <div id="map"></div>
@@ -16,12 +16,12 @@
         <div class="panel">
             <div class="panel-title">Cliente: <span id="client-name">--</span></div>
             <div class="panel-row" id="status">Buscando status...</div>
-            <div class="panel-row" id="eta">ETA: --</div>
+            <div class="panel-row" id="eta">Chega em -- min</div>
             <button id="notify-btn" class="btn">Ativar notificacoes</button>
-            <div class="panel-row" id="notify-state">Notificacoes: desativadas</div>
+            <div class="panel-row" id="notify-state" style="font-size:12px; margin-top: 8px;">Notificacoes: desativadas</div>
         </div>
 
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-        <script type="module" src="js/client.js"></script>
+        <script type="module" src="/js/client.js"></script>
     </body>
 </html>

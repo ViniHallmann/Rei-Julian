@@ -130,6 +130,33 @@ func (t *Tracker) ResetRoute() {
 	}
 
 	t.routeIdx = 0
+
+	first := t.route[0]
+	t.logs = t.logs[:0] // Limpa os historicos de log
+
+	// Atualiza com a posicao zero imediatamente e notifica
+	t.position = Position{
+		Latitude:  first.Latitude,
+		Longitude: first.Longitude,
+		Timestamp: time.Now(),
+		Step:      0,
+	}
+
+	// Broadcaster inline igual ao SetPosition
+	clients := make([]chan Position, 0, len(t.clients))
+	for ch := range t.clients {
+		clients = append(clients, ch)
+	}
+
+	// Nao mantemos o lock durante os envios no canal
+	go func(pos Position) {
+		for _, ch := range clients {
+			select {
+			case ch <- pos:
+			default:
+			}
+		}
+	}(t.position)
 }
 
 func (t *Tracker) SetPaused(paused bool) {

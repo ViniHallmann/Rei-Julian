@@ -28,38 +28,42 @@ type ControlRequest struct {
 	Action string `json:"action"`
 }
 
+func createSnapshot(tracker *Tracker) EventData {
+	pos := tracker.GetPosition()
+	route := tracker.GetRoute()
+	paused := tracker.IsPaused()
+	logs := tracker.GetLogs()
+
+	var clientsState []ClientState
+	for _, clientConfig := range FixedClients {
+		distance := DistanceMeters(pos.Latitude, pos.Longitude, clientConfig.Lat, clientConfig.Lon)
+		etaSec := ETASeconds(distance, DefaultSpeedKmh)
+		clientsState = append(clientsState, ClientState{
+			ID:                   clientConfig.ID,
+			Name:                 clientConfig.Name,
+			DistanceToHomeMeters: distance,
+			ETASeconds:           etaSec,
+		})
+	}
+
+	return EventData{
+		ID:        tracker.ID,
+		Latitude:  pos.Latitude,
+		Longitude: pos.Longitude,
+		Route:     route,
+		Step:      pos.Step,
+		Paused:    paused,
+		Clients:   clientsState,
+		Logs:      logs,
+	}
+}
+
 func positionHandler(tracker *Tracker) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.Header().Set("Cache-Control", "no-store")
 
-		pos := tracker.GetPosition()
-		route := tracker.GetRoute()
-		paused := tracker.IsPaused()
-		logs := tracker.GetLogs()
-
-		var clientsState []ClientState
-		for _, clientConfig := range FixedClients {
-			distance := DistanceMeters(pos.Latitude, pos.Longitude, clientConfig.Lat, clientConfig.Lon)
-			etaSec := ETASeconds(distance, DefaultSpeedKmh)
-			clientsState = append(clientsState, ClientState{
-				ID:                   clientConfig.ID,
-				Name:                 clientConfig.Name,
-				DistanceToHomeMeters: distance,
-				ETASeconds:           etaSec,
-			})
-		}
-
-		data := EventData{
-			ID:        tracker.ID,
-			Latitude:  pos.Latitude,
-			Longitude: pos.Longitude,
-			Route:     route,
-			Step:      pos.Step,
-			Paused:    paused,
-			Clients:   clientsState,
-			Logs:      logs,
-		}
+		data := createSnapshot(tracker)
 
 		if err := json.NewEncoder(w).Encode(data); err != nil {
 			http.Error(w, "erro ao serializar posição", http.StatusInternalServerError)
@@ -85,33 +89,8 @@ func sseHandler(tracker *Tracker) http.HandlerFunc {
 		ch := tracker.Subscribe()
 		defer tracker.Unsubscribe(ch)
 
-		sendSnapshot := func(pos Position) {
-			route := tracker.GetRoute()
-			paused := tracker.IsPaused()
-			logs := tracker.GetLogs()
-
-			var clientsState []ClientState
-			for _, clientConfig := range FixedClients {
-				distance := DistanceMeters(pos.Latitude, pos.Longitude, clientConfig.Lat, clientConfig.Lon)
-				etaSec := ETASeconds(distance, DefaultSpeedKmh)
-				clientsState = append(clientsState, ClientState{
-					ID:                   clientConfig.ID,
-					Name:                 clientConfig.Name,
-					DistanceToHomeMeters: distance,
-					ETASeconds:           etaSec,
-				})
-			}
-
-			data := EventData{
-				ID:        tracker.ID,
-				Latitude:  pos.Latitude,
-				Longitude: pos.Longitude,
-				Route:     route,
-				Step:      pos.Step,
-				Paused:    paused,
-				Clients:   clientsState,
-				Logs:      logs,
-			}
+		sendSnapshot := func() {
+			data := createSnapshot(tracker)
 			payload, err := json.Marshal(data)
 			if err != nil {
 				return
@@ -121,7 +100,7 @@ func sseHandler(tracker *Tracker) http.HandlerFunc {
 		}
 
 		// envia a posição atual imediatamente
-		sendSnapshot(tracker.GetPosition())
+		sendSnapshot()
 
 		ctx := r.Context()
 
@@ -129,8 +108,8 @@ func sseHandler(tracker *Tracker) http.HandlerFunc {
 			select {
 			case <-ctx.Done():
 				return
-			case pos := <-ch:
-				sendSnapshot(pos)
+			case <-ch:
+				sendSnapshot()
 			}
 		}
 	}
